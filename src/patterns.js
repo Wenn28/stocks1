@@ -59,8 +59,8 @@ export function detectBrokerPatterns(days, dates, rentang) {
     const sign = side === 'akumulasi' ? 1 : -1;
     let streak = 0;
     for (let i = net.length - 1; i >= 0 && sign * net[i] > 0; i--) streak++;
-    const masif = streak >= RULES.masifDays;
     const pasif = Math.abs(netLot) / win.length < RULES.pasifShare * avgVol;
+    const masif = streak >= RULES.masifDays && !pasif; // Broker kecil yang beruntun tetap Pasif
 
     let silent = false;
     if (masif) {

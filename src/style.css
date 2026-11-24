@@ -1,0 +1,95 @@
+:root {
+  --bg: #f6f5f1; --surface: #ffffff; --line: #d9d7d0;
+  --text: #1b1d1f; --muted: #575c63;
+  --buy: #0f7a3d; --sell: #b3261e; --silent: #8a5a00; --silent-bg: #fbefd6;
+  --focus: #1b1d1f;
+  font: 15px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-variant-numeric: tabular-nums;
+  color-scheme: light;
+}
+:root[data-theme="dark"] {
+  --bg: #121416; --surface: #1b1e21; --line: #33383d;
+  --text: #e6e6e3; --muted: #a0a6ad;
+  --buy: #4cc283; --sell: #ff8a80; --silent: #f0b44c; --silent-bg: #3a2d12;
+  --focus: #e6e6e3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); }
+a[href], button, label, input[type="radio"] { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.muted { color: var(--muted); }
+
+button {
+  font: inherit; color: var(--text); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 4px; min-height: 44px; padding: 0 14px;
+}
+button:hover { border-color: var(--text); }
+button:active { background: var(--line); }
+
+.top { display: flex; align-items: center; gap: 16px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.brand { font-weight: 700; font-size: 17px; }
+.sample { margin: 0 auto 0 0; font-size: 13px; font-weight: 600; color: var(--silent); }
+
+main { padding: 16px; max-width: 1200px; margin: 0 auto; }
+.state { padding: 32px 0; }
+
+.layout { display: grid; grid-template-columns: 220px minmax(0, 1fr); gap: 24px; }
+.stocks { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.stocks button { width: 100%; text-align: left; display: grid; gap: 2px; padding: 8px 12px; }
+.stocks button[aria-current="true"] { border-color: var(--text); border-width: 2px; padding: 7px 11px; font-weight: 600; }
+.stocks .code { font-weight: 700; }
+.stocks .flags { font-size: 12px; color: var(--muted); font-weight: 400; }
+
+.head { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.head h2 { margin: 0; font-size: 28px; }
+.head p { margin: 0; }
+h3 { font-size: 15px; margin: 24px 0 8px; }
+
+.rentang { border: 0; padding: 0; margin: 12px 0 0; display: flex; gap: 4px; flex-wrap: wrap; align-items: center; }
+.rentang legend { float: left; margin-right: 8px; color: var(--muted); }
+.rentang label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+.rentang label:hover { border-color: var(--text); }
+.rentang label:has(:checked) { border-color: var(--text); font-weight: 600; }
+
+.spike { margin: 16px 0 0; }
+.spike strong { color: var(--silent); }
+
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 8px 12px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+tbody tr:last-child td { border-bottom: 0; }
+th { font-size: 13px; color: var(--muted); font-weight: 600; }
+.num { text-align: right; }
+
+.side-akumulasi { color: var(--buy); font-weight: 600; }
+.side-distribusi { color: var(--sell); font-weight: 600; }
+.tag { display: inline-block; margin-left: 6px; font-size: 12px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; }
+.tag-silent { color: var(--silent); background: var(--silent-bg); border-color: var(--silent); font-weight: 600; }
+
+/* Motif: bar net lot dua arah. Kanan = net beli, kiri = net jual. */
+.net { display: grid; grid-template-columns: 90px auto; gap: 10px; align-items: center; justify-content: end; }
+.bar { position: relative; height: 10px; background: var(--line); }
+.bar i { position: absolute; top: 0; bottom: 0; width: calc(var(--w) * 50%); }
+.bar i.buy { left: 50%; background: var(--buy); }
+.bar i.sell { right: 50%; background: var(--sell); }
+
+.crossing { list-style: none; padding: 0; margin: 0; display: grid; gap: 4px; }
+.crossing li { padding: 8px 12px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+
+.foot { padding: 24px 16px; text-align: center; font-size: 13px; }
+
+@media (max-width: 720px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+  .stocks { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+  .top { flex-wrap: wrap; gap: 4px 12px; }
+  .sample { order: 3; width: 100%; }
+  /* Net lot harus terlihat tanpa geser: label pola boleh turun baris, bar disembunyikan. */
+  th, td { padding: 8px; }
+  td.pola { white-space: normal; }
+  .net { display: block; }
+  .bar { display: none; }
+}

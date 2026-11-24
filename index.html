@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Stocks1: Pola Broker IDX (data contoh)</title>
+  <link rel="stylesheet" href="src/style.css">
+  <script type="module" src="src/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <span class="brand">Stocks1</span>
+    <p class="sample">DATA CONTOH: kode saham dan Broker fiktif</p>
+    <button type="button" id="theme" aria-pressed="false">Mode gelap</button>
+  </header>
+
+  <main>
+    <h1 class="visually-hidden">Pola Broker per saham</h1>
+
+    <p id="loading" class="state">Memuat data contoh&hellip;</p>
+
+    <div id="error" class="state" hidden>
+      <p>Data contoh tidak bisa dimuat. Jalankan <code>npm run generate</code>, lalu coba lagi.</p>
+      <button type="button" id="retry">Muat ulang data</button>
+    </div>
+
+    <div id="ready" class="layout" hidden>
+      <nav aria-label="Daftar saham">
+        <ul id="stocks" class="stocks"></ul>
+      </nav>
+
+      <section id="detail" class="detail" aria-live="polite">
+        <div class="head">
+          <h2 id="code"></h2>
+          <p id="meta" class="muted"></p>
+        </div>
+
+        <fieldset class="rentang">
+          <legend>Rentang</legend>
+          <label><input type="radio" name="rentang" value="5"> 5 hari</label>
+          <label><input type="radio" name="rentang" value="20" checked> 20 hari</label>
+          <label><input type="radio" name="rentang" value="60"> 60 hari</label>
+        </fieldset>
+
+        <p id="spike" class="spike"></p>
+
+        <h3>Akumulasi dan Distribusi</h3>
+        <p id="empty" class="muted" hidden></p>
+        <div class="table-wrap">
+          <table id="brokers">
+            <thead>
+              <tr>
+                <th scope="col">Broker</th>
+                <th scope="col">Pola</th>
+                <th scope="col" class="num">Net lot</th>
+                <th scope="col" class="num">Avg beli</th>
+                <th scope="col" class="num">Avg jual</th>
+                <th scope="col" class="num">Hari beruntun</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+
+        <h3>Crossing</h3>
+        <ul id="crossing" class="crossing"></ul>
+      </section>
+    </div>
+  </main>
+
+  <footer class="foot muted">
+    Semua angka di halaman ini berasal dari generator data contoh, bukan dari pasar. Bukan rekomendasi jual atau beli.
+  </footer>
+</body>
+</html>

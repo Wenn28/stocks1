@@ -26,7 +26,8 @@ function tradingDays(endISO, n) {
   return out; // shortcut: hari libur bursa tidak dilewati, cukup untuk data contoh
 }
 
-const NOISE = 'QA QB QC QD QE QF QG QH QJ QK QL QM'.split(' ');
+// 40 Broker noise: dengan terlalu sedikit Broker, pasangan acak sering lolos syarat Crossing.
+const NOISE = [...'ABCDEFGHJKLMNPRSTUVW'].flatMap((c) => ['Q' + c, 'R' + c]);
 
 export function generate({ seed = 7, end = '2026-11-23', nDays = 80 } = {}) {
   const r = rng(seed);

@@ -39,7 +39,7 @@ Broker net beli di satu saham selama Rentang, dengan rata-rata harga belinya di 
 _Avoid_: Akum, collect, nampung
 
 **Akumulasi Masif**:
-Akumulasi oleh Broker yang net beli minimal 5 hari bursa berturut-turut.
+Akumulasi oleh Broker yang net beli minimal 5 hari bursa berturut-turut dan bukan Akumulasi Pasif.
 _Avoid_: Akum besar, big accumulation
 
 **Akumulasi Pasif**:

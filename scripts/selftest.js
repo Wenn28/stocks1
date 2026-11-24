@@ -15,9 +15,13 @@ const ds = find('ZZDS', 'Q2');
 assert.equal(ds?.side, 'distribusi');
 assert.ok(ds.masif && !ds.silent, 'Q2 harus Distribusi Masif, bukan Silent (harga turun)');
 
+for (const code in stocks) {
+  assert.ok(!detectBrokerPatterns(stocks[code], dates, 20).some((p) => p.masif && p.pasif), `${code}: Masif tidak boleh Pasif`);
+}
+
 const cr = detectCrossing(stocks.ZZCR[lastDay]);
 assert.ok(cr.some((c) => c.a === 'Q3' && c.b === 'Q4'), 'Q3/Q4 harus Crossing');
-assert.equal(detectCrossing(stocks.ZZNO[lastDay]).length, 0, 'ZZNO tanpa Crossing');
+assert.equal(dates.slice(-20).flatMap((d) => detectCrossing(stocks.ZZNO[d])).length, 0, 'ZZNO tanpa Crossing 20 hari');
 
 assert.equal(volumeSpike(stocks.ZZSP, dates, lastDay).spike, true, 'ZZSP harus Lonjakan Volume');
 assert.equal(volumeSpike(stocks.ZZNO, dates, lastDay).spike, false, 'ZZNO tanpa Lonjakan Volume');
