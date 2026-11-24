@@ -1,0 +1,9 @@
+{
+  "name": "stocks1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "generate": "node scripts/generate.js",
+    "test": "node scripts/selftest.js"
+  }
+}
