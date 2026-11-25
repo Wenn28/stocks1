@@ -1,6 +1,7 @@
 // Pastikan setiap pola yang ditanam generator terdeteksi, dan saham tanpa pola tidak memicu sinyal.
 import assert from 'node:assert/strict';
-import { generate } from './generate.js';
+import { generate } from '../src/sample.js';
+import { buildCandles, orderBlocks } from '../src/candles.js';
 import { detectBrokerPatterns, volumeSpike, volumeSpikeIntraday, detectCrossing, suspectedGroups } from '../src/patterns.js';
 
 const { dates, stocks } = generate();
@@ -37,5 +38,23 @@ assert.equal(volumeSpike(stocks.ZZNO, dates, lastDay).spike, false, 'ZZNO tanpa 
 assert.equal(volumeSpike(stocks.ZZNO, dates, dates[5]), null, 'riwayat < 20 hari');
 assert.equal(volumeSpikeIntraday(stocks.ZZSP, dates, lastDay, '11:00:00').spike, true, 'ZZSP Lonjakan Intraday sejak pagi');
 assert.equal(volumeSpikeIntraday(stocks.ZZNO, dates, lastDay, '11:00:00').spike, false, 'ZZNO tanpa Lonjakan Intraday');
+
+// Candle per Timeframe
+const d1 = buildCandles(stocks.ZZNO, dates, 1440);
+assert.equal(d1.length, dates.length, '1D: satu candle per hari');
+assert.equal(d1.at(-1).volume, stocks.ZZNO[lastDay].reduce((a, r) => a + r[2], 0), 'volume candle = total lot');
+const m5 = buildCandles(stocks.ZZNO, [lastDay], 5);
+assert.ok(m5.every((k) => k.low <= Math.min(k.open, k.close) && k.high >= Math.max(k.open, k.close)), 'OHLC konsisten');
+assert.deepEqual(buildCandles(stocks.ZZNO, [lastDay], 240).map((k) => new Date(k.time * 1000).getUTCHours()), [9, 13], '4 jam mulai 09:00 dan 13:00');
+
+// Order Block dari candle buatan: swing high 110, candle turun, lalu close tembus 110.
+const k = (open, high, low, close) => ({ open, high, low, close });
+const seq = [k(100, 101, 99, 100), k(100, 105, 99, 104), k(104, 110, 103, 108), k(108, 109, 104, 105),
+  k(105, 106, 100, 101), k(101, 104, 98, 103), k(103, 112, 102, 111), k(111, 113, 108, 112)];
+const ob = orderBlocks(seq, { swing: 2 });
+assert.deepEqual(ob.map((b) => [b.type, b.i, b.bottom, b.top]), [['bull', 4, 100, 106]], 'bull OB = candle turun terakhir sebelum tembus');
+const hitWick = [...seq, k(112, 112, 99, 105)]; // wick menembus bawah blok, close tidak
+assert.equal(orderBlocks(hitWick, { swing: 2, mitigation: 'wick' }).length, 0, 'mitigasi wick');
+assert.equal(orderBlocks(hitWick, { swing: 2, mitigation: 'close' }).length, 1, 'mitigasi close belum kena');
 
 console.log('selftest OK');

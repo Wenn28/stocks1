@@ -3,39 +3,96 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stocks1: Pola Broker IDX (data contoh)</title>
+  <title>Stocks1: Pola Broker IDX (prototype, data contoh)</title>
   <link rel="stylesheet" href="src/style.css">
+  <script src="vendor/lightweight-charts.standalone.production.js" defer></script>
   <script type="module" src="src/app.js"></script>
 </head>
 <body>
   <header class="top">
     <span class="brand">Stocks1</span>
-    <p class="sample">DATA CONTOH: kode saham dan Broker fiktif</p>
+    <p class="sample">PROTOTYPE, DATA CONTOH: kode saham dan Broker fiktif</p>
     <button type="button" id="theme" aria-pressed="false">Mode gelap</button>
   </header>
 
   <main>
     <h1 class="visually-hidden">Pola Broker per saham</h1>
 
-    <p id="loading" class="state">Memuat data contoh&hellip;</p>
+    <p id="loading" class="state">Membuat data contoh&hellip;</p>
 
     <div id="error" class="state" hidden>
-      <p>Data contoh tidak bisa dimuat. Jalankan <code>npm run generate</code>, lalu coba lagi.</p>
+      <p>Data contoh atau library grafik gagal dimuat. Periksa koneksi, lalu coba lagi.</p>
       <button type="button" id="retry">Muat ulang data</button>
     </div>
 
     <div id="ready" class="layout" hidden>
-      <nav aria-label="Daftar saham">
-        <ul id="stocks" class="stocks"></ul>
-      </nav>
+      <div class="side">
+        <nav aria-label="Daftar saham">
+          <ul id="stocks" class="stocks"></ul>
+        </nav>
 
-      <section id="detail" class="detail" aria-live="polite">
+        <section class="scanner" aria-labelledby="scanner-title">
+          <h2 id="scanner-title">Scanner</h2>
+          <p class="muted small">Dihitung dari hari bursa terakhir data contoh, bukan real time.</p>
+          <label class="check"><input type="checkbox" id="scan-silent-on"> Silent Akumulasi/Distribusi</label>
+          <ul id="scan-silent" class="scan"></ul>
+          <label class="check"><input type="checkbox" id="scan-spike-on"> Lonjakan Volume Intraday</label>
+          <label class="field" id="scan-time-field">Sampai jam
+            <select id="scan-time">
+              <option value="09:30:00">09:30</option>
+              <option value="10:00:00">10:00</option>
+              <option value="11:00:00">11:00</option>
+              <option value="14:00:00">14:00</option>
+              <option value="15:50:00">15:50</option>
+            </select>
+          </label>
+          <ul id="scan-spike" class="scan"></ul>
+        </section>
+      </div>
+
+      <section id="detail" class="detail">
         <div class="head">
           <h2 id="code"></h2>
           <p id="meta" class="muted"></p>
         </div>
 
-        <fieldset class="rentang">
+        <fieldset class="seg" id="tf">
+          <legend>Timeframe</legend>
+          <label><input type="radio" name="tf" value="5"> 5m</label>
+          <label><input type="radio" name="tf" value="10"> 10m</label>
+          <label><input type="radio" name="tf" value="15"> 15m</label>
+          <label><input type="radio" name="tf" value="30"> 30m</label>
+          <label><input type="radio" name="tf" value="240"> 4j</label>
+          <label><input type="radio" name="tf" value="1440" checked> 1D</label>
+        </fieldset>
+
+        <div class="chart-wrap">
+          <div id="chart" role="img" aria-label="Grafik candle dan volume saham terpilih"></div>
+          <div id="ob-layer" aria-hidden="true"></div>
+        </div>
+
+        <details class="ob-settings">
+          <summary>Pengaturan Order Block</summary>
+          <form id="ob-form">
+            <label class="check"><input type="checkbox" name="on"> Tampilkan Order Block</label>
+            <label class="field">Panjang swing <input type="number" name="swing" min="2" max="20" required></label>
+            <label class="field">Blok per arah <input type="number" name="max" min="1" max="10" required></label>
+            <label class="field">Mitigasi
+              <select name="mitigation"><option value="wick">Wick</option><option value="close">Close</option></select>
+            </label>
+            <label class="field">Warna OB beli <input type="color" name="bull"></label>
+            <label class="field">Warna OB jual <input type="color" name="bear"></label>
+            <fieldset class="fields">
+              <legend>Isi data</legend>
+              <label class="check"><input type="checkbox" name="avg"> Avg harga</label>
+              <label class="check"><input type="checkbox" name="volume"> Volume</label>
+              <label class="check"><input type="checkbox" name="age"> Umur hari</label>
+              <label class="check"><input type="checkbox" name="broker"> Broker teratas</label>
+            </fieldset>
+          </form>
+        </details>
+
+        <fieldset class="seg">
           <legend>Rentang</legend>
           <label><input type="radio" name="rentang" value="5"> 5 hari</label>
           <label><input type="radio" name="rentang" value="20" checked> 20 hari</label>
@@ -73,6 +130,7 @@
 
   <footer class="foot muted">
     Semua angka di halaman ini berasal dari generator data contoh, bukan dari pasar. Bukan rekomendasi jual atau beli.
+    Grafik: <a href="https://www.tradingview.com/" rel="noopener">TradingView Lightweight Charts</a>.
   </footer>
 </body>
 </html>

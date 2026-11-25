@@ -1,7 +1,5 @@
 // DATA CONTOH: Done Detail palsu dengan pola yang sengaja ditanam. Kode saham dan Broker fiktif.
-// Format baris sama dengan src/patterns.js agar nanti tinggal ganti sumber ke feed IDX.
-import { writeFileSync, mkdirSync } from 'node:fs';
-import { pathToFileURL } from 'node:url';
+// Format baris sama dengan src/patterns.js agar nanti tinggal ganti sumber ke feed IDX. Jalan di browser dan Node.
 
 function rng(seed) { // mulberry32: deterministik agar self-test stabil
   return () => {
@@ -53,9 +51,11 @@ export function generate({ seed = 7, end = '2026-11-23', nDays = 80 } = {}) {
 
       const rows = [];
       const n = code === 'ZZSP' && fromEnd === 0 ? 480 : 120;           // Lonjakan Volume hari terakhir
-      for (let k = 0; k < n; k++) {
-        const [b, s] = noisePair();
-        rows.push([time(), roundTick(base + (Math.floor(r() * 3) - 1) * tick(base)), 1 + Math.floor(r() ** 2 * 200), b, s]);
+      const times = Array.from({ length: n }, time).sort();
+      let walk = 0; // harga intraday berjalan acak, maksimal 4 tick dari harga dasar, agar candle menit punya swing
+      for (const t of times) {
+        walk = Math.max(-4, Math.min(4, walk + (r() < 0.5 ? -1 : 1)));
+        rows.push([t, base + walk * tick(base), 1 + Math.floor(r() ** 2 * 200), ...noisePair()]);
       }
       if (code === 'ZZAK' && fromEnd < 20) {
         for (let k = 0; k < 20; k++) rows.push([time(), base - 2 * tick(base), 100 + Math.floor(r() * 200), 'Q1', pick(NOISE)]);
@@ -79,10 +79,4 @@ export function generate({ seed = 7, end = '2026-11-23', nDays = 80 } = {}) {
     });
   }
   return { note: 'DATA CONTOH: bukan data pasar sungguhan.', dates, stocks };
-}
-
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
-  mkdirSync(new URL('../data/', import.meta.url), { recursive: true });
-  writeFileSync(new URL('../data/sample.json', import.meta.url), JSON.stringify(generate()));
-  console.log('data/sample.json ditulis');
 }

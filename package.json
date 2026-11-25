@@ -3,7 +3,6 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "generate": "node scripts/generate.js",
     "test": "node scripts/selftest.js",
     "start": "node scripts/serve.js"
   }
