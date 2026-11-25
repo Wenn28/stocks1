@@ -4,7 +4,12 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Stocks1: Pola Broker IDX (prototype, data contoh)</title>
+  <!-- tema dipasang sebelum gambar pertama, agar mode gelap tidak berkedip terang -->
+  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
   <link rel="stylesheet" href="src/style.css">
+  <link rel="modulepreload" href="src/patterns.js">
+  <link rel="modulepreload" href="src/candles.js">
+  <link rel="modulepreload" href="src/sample.js">
   <script src="vendor/lightweight-charts.standalone.production.js" defer></script>
   <script type="module" src="src/app.js"></script>
 </head>
@@ -53,19 +58,27 @@
       <section id="detail" class="detail">
         <div class="head">
           <h2 id="code"></h2>
-          <p id="meta" class="muted"></p>
+          <p id="stats" class="stats"></p>
         </div>
 
-        <fieldset class="seg" id="tf">
-          <legend>Timeframe</legend>
-          <label><input type="radio" name="tf" value="5"> 5m</label>
-          <label><input type="radio" name="tf" value="10"> 10m</label>
-          <label><input type="radio" name="tf" value="15"> 15m</label>
-          <label><input type="radio" name="tf" value="30"> 30m</label>
-          <label><input type="radio" name="tf" value="240"> 4j</label>
-          <label><input type="radio" name="tf" value="1440" checked> 1D</label>
-        </fieldset>
+        <ul id="signals" class="signals" aria-label="Sinyal utama"></ul>
 
+        <div class="toolbar">
+          <fieldset class="seg">
+            <legend>Timeframe</legend>
+            <div class="opts">
+              <label><input type="radio" name="tf" value="5">5m</label>
+              <label><input type="radio" name="tf" value="10">10m</label>
+              <label><input type="radio" name="tf" value="15">15m</label>
+              <label><input type="radio" name="tf" value="30">30m</label>
+              <label><input type="radio" name="tf" value="240">4j</label>
+              <label><input type="radio" name="tf" value="1440" checked>1D</label>
+            </div>
+          </fieldset>
+          <button type="button" id="ob-toggle" aria-pressed="true">Sembunyikan Order Block</button>
+        </div>
+
+        <p id="legend" class="legend"></p>
         <div class="chart-wrap">
           <div id="chart" role="img" aria-label="Grafik candle dan volume saham terpilih"></div>
           <div id="ob-layer" aria-hidden="true"></div>
@@ -74,7 +87,6 @@
         <details class="ob-settings">
           <summary>Pengaturan Order Block</summary>
           <form id="ob-form">
-            <label class="check"><input type="checkbox" name="on"> Tampilkan Order Block</label>
             <label class="field">Panjang swing <input type="number" name="swing" min="2" max="20" required></label>
             <label class="field">Blok per arah <input type="number" name="max" min="1" max="10" required></label>
             <label class="field">Mitigasi
@@ -92,16 +104,18 @@
           </form>
         </details>
 
-        <fieldset class="seg">
-          <legend>Rentang</legend>
-          <label><input type="radio" name="rentang" value="5"> 5 hari</label>
-          <label><input type="radio" name="rentang" value="20" checked> 20 hari</label>
-          <label><input type="radio" name="rentang" value="60"> 60 hari</label>
-        </fieldset>
-
-        <p id="spike" class="spike"></p>
-
-        <h3>Akumulasi dan Distribusi</h3>
+        <div class="section-head">
+          <h3>Akumulasi dan Distribusi</h3>
+          <fieldset class="seg">
+            <legend>Rentang</legend>
+            <div class="opts">
+              <label><input type="radio" name="rentang" value="5">5 hari</label>
+              <label><input type="radio" name="rentang" value="20" checked>20 hari</label>
+              <label><input type="radio" name="rentang" value="60">60 hari</label>
+            </div>
+          </fieldset>
+          <p id="range-meta" class="muted small"></p>
+        </div>
         <p id="empty" class="muted" hidden></p>
         <div class="table-wrap">
           <table id="brokers">
@@ -118,12 +132,18 @@
             <tbody></tbody>
           </table>
         </div>
+        <button type="button" id="pasif-toggle" class="link-btn" aria-controls="brokers" aria-expanded="false" hidden></button>
 
-        <h3>Crossing</h3>
-        <ul id="crossing" class="crossing"></ul>
-
-        <h3>Kelompok Dugaan</h3>
-        <p id="dugaan" class="dugaan"></p>
+        <div class="pair">
+          <div>
+            <h3>Crossing</h3>
+            <ul id="crossing" class="crossing"></ul>
+          </div>
+          <div>
+            <h3>Kelompok Dugaan</h3>
+            <p id="dugaan" class="dugaan"></p>
+          </div>
+        </div>
       </section>
     </div>
   </main>

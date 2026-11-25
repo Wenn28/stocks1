@@ -123,52 +123,66 @@ export function volumeSpikeIntraday(days, dates, date, time) {
   return { vol: v, avg, ratio: avg ? v / avg : null, spike: avg > 0 && v >= RULES.spikeMult * avg };
 }
 
-function flowOf(rows) {
-  const flow = {};
-  for (const r of rows) flow[r[S] + '>' + r[B]] = (flow[r[S] + '>' + r[B]] ?? 0) + r[L];
+// Lot per arah "penjual>pembeli" untuk baris rows[from..to).
+function flowOf(rows, from = 0, to = rows.length) {
+  const flow = new Map();
+  for (let i = from; i < to; i++) {
+    const r = rows[i];
+    const k = r[S] + '>' + r[B];
+    const f = flow.get(k);
+    if (f) f.lot += r[L];
+    else flow.set(k, { a: r[S], b: r[B], lot: r[L] });
+  }
   return flow;
 }
 
 function balancedPairs(flow, dayVol) {
   const out = [];
-  for (const [k, aToB] of Object.entries(flow)) {
-    const [a, b] = k.split('>');
-    if (a >= b) continue; // tiap pasangan sekali; a === b bukan Crossing antar Broker
-    const bToA = flow[b + '>' + a];
-    if (!bToA) continue;
-    const big = Math.max(aToB, bToA);
+  for (const f of flow.values()) {
+    if (f.a >= f.b) continue; // tiap pasangan sekali; a === b bukan Crossing antar Broker
+    const back = flow.get(f.b + '>' + f.a);
+    if (!back) continue;
+    const aToB = f.lot, bToA = back.lot, big = Math.max(aToB, bToA);
     if ((big - Math.min(aToB, bToA)) / big <= RULES.crossDiff && aToB + bToA >= RULES.crossShare * dayVol) {
-      out.push({ a, b, aToB, bToA, share: (aToB + bToA) / dayVol });
+      out.push({ a: f.a, b: f.b, aToB, bToA, share: (aToB + bToA) / dayVol });
     }
   }
   return out;
 }
 
+const minuteOf = (t) => (t.charCodeAt(0) - 48) * 600 + (t.charCodeAt(1) - 48) * 60 + (t.charCodeAt(3) - 48) * 10 + (t.charCodeAt(4) - 48);
+
 // Crossing satu hari. strict = bolak-balik juga terjadi dalam satu irisan 15 menit (Crossing Ketat).
+// rows urut waktu, jadi setiap irisan adalah potongan berurutan dan cukup ditandai indeks awal-akhirnya.
 export function detectCrossing(rows) {
-  const vol = rows.reduce((a, r) => a + r[L], 0);
-  const found = new Map(balancedPairs(flowOf(rows), vol).map((c) => [c.a + c.b, { ...c, strict: false }]));
-  const slices = {};
-  for (const r of rows) {
-    const k = Math.floor((Number(r[T].slice(0, 2)) * 60 + Number(r[T].slice(3, 5))) / RULES.strictMinutes);
-    (slices[k] ??= []).push(r);
-  }
-  for (const part of Object.values(slices)) {
-    for (const c of balancedPairs(flowOf(part), vol)) {
-      const f = found.get(c.a + c.b);
-      if (f) f.strict = true;
-      else found.set(c.a + c.b, { ...c, strict: true });
+  let vol = 0;
+  for (const r of rows) vol += r[L];
+  const found = new Map(balancedPairs(flowOf(rows), vol).map((c) => [c.a + '>' + c.b, { ...c, strict: false }]));
+  const need = RULES.crossShare * vol;
+  for (let from = 0; from < rows.length;) {
+    const slice = Math.floor(minuteOf(rows[from][T]) / RULES.strictMinutes);
+    let to = from, sliceVol = 0;
+    while (to < rows.length && Math.floor(minuteOf(rows[to][T]) / RULES.strictMinutes) === slice) sliceVol += rows[to++][L];
+    // pasangan bolak-balik tidak mungkin melebihi volume irisannya: irisan kecil langsung dilewati
+    if (sliceVol >= need) {
+      for (const c of balancedPairs(flowOf(rows, from, to), vol)) {
+        const f = found.get(c.a + '>' + c.b);
+        if (f) f.strict = true;
+        else found.set(c.a + '>' + c.b, { ...c, strict: true });
+      }
     }
+    from = to;
   }
   return [...found.values()];
 }
 
 // Kelompok Dugaan: setiap pasangan Broker yang tertangkap Crossing bersama di saham mana pun.
-export function suspectedGroups(stocks, dates) {
+// crossingOf(kode, tanggal) boleh diganti versi ber-cache agar Crossing tiap hari dihitung sekali saja.
+export function suspectedGroups(stocks, dates, crossingOf = (code, d) => detectCrossing(stocks[code][d] ?? [])) {
   const seen = new Map();
-  for (const days of Object.values(stocks)) {
+  for (const code of Object.keys(stocks)) {
     for (const d of dates.slice(-RULES.dugaanDays)) {
-      for (const c of detectCrossing(days[d] ?? [])) {
+      for (const c of crossingOf(code, d)) {
         seen.set(c.a + '+' + c.b, { name: `${c.a} + ${c.b}`, members: [c.a, c.b], kind: 'dugaan' });
       }
     }
