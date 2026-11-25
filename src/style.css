@@ -53,6 +53,7 @@ h3 { font-size: 15px; margin: 24px 0 8px; }
 .rentang legend { float: left; margin-right: 8px; color: var(--muted); }
 .rentang label { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border: 1px solid var(--line); border-radius: 4px; background: var(--surface); }
 .rentang label:hover { border-color: var(--text); }
+.rentang label:active { background: var(--line); }
 .rentang label:has(:checked) { border-color: var(--text); font-weight: 600; }
 
 .spike { margin: 16px 0 0; }
@@ -68,6 +69,9 @@ th { font-size: 13px; color: var(--muted); font-weight: 600; }
 .side-akumulasi { color: var(--buy); font-weight: 600; }
 .side-distribusi { color: var(--sell); font-weight: 600; }
 .tag { display: inline-block; margin-left: 6px; font-size: 12px; padding: 1px 6px; border: 1px solid var(--line); border-radius: 3px; }
+/* Dugaan: garis putus-putus = belum terverifikasi. Bukan aksen, karena aksen hanya untuk Silent. */
+.tag-dugaan, .dugaan { border: 1px dashed var(--text); }
+.dugaan { margin: 0; padding: 8px 12px; border-radius: 4px; background: var(--surface); }
 .tag-silent { color: var(--silent); background: var(--silent-bg); border-color: var(--silent); font-weight: 600; }
 
 /* Motif: bar net lot dua arah. Kanan = net beli, kiri = net jual. */

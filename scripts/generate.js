@@ -47,8 +47,8 @@ export function generate({ seed = 7, end = '2026-11-23', nDays = 80 } = {}) {
     stocks[code] = {};
     dates.forEach((date, i) => {
       const fromEnd = dates.length - 1 - i;
-      if (code === 'ZZAK' && fromEnd < 8) base = start;                 // sideways saat Silent Akumulasi
-      else if (code === 'ZZDS' && fromEnd < 6) base = roundTick(base * 0.99); // turun pelan saat distribusi
+      if (code === 'ZZAK' && fromEnd < 20) base = start;                  // sideways saat Silent Akumulasi
+      else if (code === 'ZZDS' && fromEnd < 20) base = roundTick(base * 0.995); // turun setiap hari saat distribusi
       else base = roundTick(base * (1 + (r() - 0.5) * 0.02));
 
       const rows = [];
@@ -57,15 +57,21 @@ export function generate({ seed = 7, end = '2026-11-23', nDays = 80 } = {}) {
         const [b, s] = noisePair();
         rows.push([time(), roundTick(base + (Math.floor(r() * 3) - 1) * tick(base)), 1 + Math.floor(r() ** 2 * 200), b, s]);
       }
-      if (code === 'ZZAK' && fromEnd < 8) {
+      if (code === 'ZZAK' && fromEnd < 20) {
         for (let k = 0; k < 20; k++) rows.push([time(), base - 2 * tick(base), 100 + Math.floor(r() * 200), 'Q1', pick(NOISE)]);
       }
-      if (code === 'ZZDS' && fromEnd < 6) {
+      if (code === 'ZZDS' && fromEnd < 20) {
         for (let k = 0; k < 20; k++) rows.push([time(), base + 2 * tick(base), 100 + Math.floor(r() * 200), pick(NOISE), 'Q2']);
+        // Q5 Penampung: menampung di bawah VWAP setiap hari harga turun
+        for (let k = 0; k < 10; k++) rows.push([time(), base - 2 * tick(base), 100 + Math.floor(r() * 100), 'Q5', pick(NOISE)]);
       }
       if (code === 'ZZCR' && fromEnd === 0) {
         for (let k = 0; k < 10; k++) rows.push([time(), base, 100, 'Q4', 'Q3']); // Q3 jual ke Q4: 1000 lot
         for (let k = 0; k < 10; k++) rows.push([time(), base, 95, 'Q3', 'Q4']);  // Q4 jual ke Q3: 950 lot
+      }
+      if (code === 'ZZCR' && fromEnd === 3) { // Crossing Ketat: semua bolak-balik di 10:00-10:14
+        for (let k = 0; k < 5; k++) rows.push([`10:0${k}:00`, base, 200, 'Q7', 'Q6']);
+        for (let k = 0; k < 5; k++) rows.push([`10:1${k}:00`, base, 190, 'Q6', 'Q7']);
       }
       rows.sort((x, y) => (x[0] < y[0] ? -1 : x[0] > y[0] ? 1 : 0));
       rows.push(['15:50:00', base, 1 + Math.floor(r() * 50), ...noisePair()]); // penutupan di harga dasar
