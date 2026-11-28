@@ -9,7 +9,7 @@ Anggota bursa yang tercatat dengan kode dua huruf (misalnya YP, CC) di setiap tr
 _Avoid_: Sekuritas, bandar (kecuali sudah didefinisikan sebagai peran)
 
 **Kelompok Broker**:
-Beberapa Broker yang dianggap bertindak untuk pihak yang sama. Ada tiga asal: Kelompok Resmi dari admin dengan sumber berita terverifikasi, Kelompok Pribadi buatan pengguna yang hanya terlihat olehnya, dan Kelompok Dugaan: dua Broker yang tertangkap Crossing bersama, selalu ditampilkan dengan peringatan bahwa ini perkiraan.
+Beberapa Broker yang dianggap bertindak untuk pihak yang sama. Ada tiga asal: Kelompok Resmi dari admin dengan sumber berita terverifikasi, Kelompok Pribadi buatan pengguna yang hanya terlihat olehnya, dan Kelompok Dugaan: dua Broker yang tertangkap Crossing bersama di satu saham, berlaku hanya di saham itu, dan selalu ditampilkan dengan peringatan bahwa ini perkiraan.
 _Avoid_: Afiliasi, grup bandar, institusi
 
 **Broker Summary**:
@@ -28,6 +28,10 @@ _Avoid_: Data realtime broker, sinyal bandar
 Perbandingan volume yang terjadi di harga offer (dihitung beli) dengan volume di harga bid (dihitung jual).
 _Avoid_: Buy/sell pressure, haka/haki ratio
 
+**IHSG**:
+Indeks Harga Saham Gabungan, indeks yang mencakup semua saham tercatat di BEI. Dipakai sebagai gambaran arah pasar secara keseluruhan.
+_Avoid_: JCI, indeks komposit, market
+
 **Timeframe**:
 Ukuran irisan waktu untuk grafik dan Tekanan Beli/Jual: 5 menit, 10 menit, 15 menit, 30 menit, 4 jam, atau 1 hari.
 _Avoid_: Interval, candle
@@ -39,7 +43,7 @@ _Avoid_: Periode, range, lookback
 ### Pola Broker
 
 **Akumulasi**:
-Broker net beli di satu saham selama Rentang, dengan rata-rata harga belinya di bawah harga terakhir.
+Broker net beli di satu saham selama Rentang. Rata-rata harga belinya dibanding harga terakhir hanya keterangan, bukan syarat.
 _Avoid_: Akum, collect, nampung
 
 **Akumulasi Masif**:
@@ -47,7 +51,7 @@ Akumulasi oleh Broker yang net beli di minimal 80% hari bursa dalam Rentang dan 
 _Avoid_: Akum besar, big accumulation
 
 **Akumulasi Pasif**:
-Akumulasi pelan: net beli Broker di bawah 5% volume harian saham itu.
+Akumulasi pelan: rata-rata net beli harian Broker selama Rentang di bawah 5% rata-rata volume harian saham itu.
 _Avoid_: Akum kecil
 
 **Silent Akumulasi**:
@@ -55,15 +59,15 @@ Akumulasi Masif saat harga saham Sideways selama seluruh Rentang.
 _Avoid_: Akum diam-diam, hidden accumulation
 
 **Sideways**:
-Harga tertinggi dan terendah saham selama hari-hari pola berselisih paling besar 5% dari harga terendah.
+Harga tertinggi dan terendah saham selama Rentang berselisih paling besar 5% dari harga terendah.
 _Avoid_: Datar, flat, harga diam
 
 **Distribusi**:
-Cermin Akumulasi: Broker net jual dengan rata-rata harga jual di atas harga terakhir. Distribusi Masif, Distribusi Pasif, dan Silent Distribusi mengikuti aturan yang sama dengan arah terbalik.
+Cermin Akumulasi: Broker net jual di satu saham selama Rentang. Distribusi Masif, Distribusi Pasif, dan Silent Distribusi mengikuti aturan yang sama dengan arah terbalik.
 _Avoid_: Dist, buang barang, guyur
 
 **Penampung**:
-Broker yang net beli di minimal separuh hari turun dalam Rentang (penutupan di bawah penutupan sebelumnya), dengan sebagian besar beliannya di bawah VWAP hari itu.
+Broker yang net beli di minimal separuh hari turun dalam Rentang (penutupan di bawah penutupan sebelumnya), dengan sebagian besar beliannya di hari-hari turun itu terjadi di bawah VWAP hari tersebut. Net beli yang sekecil Akumulasi Pasif tidak dihitung.
 _Avoid_: Penadah, buyer on dip
 
 **Lonjakan Volume**:
@@ -76,9 +80,17 @@ _Avoid_: Spike realtime
 
 ### Fitur
 
+**Ringkasan Pasar**:
+Layar pertama aplikasi: arah IHSG, saham dengan Akumulasi dan Distribusi Broker terbesar dalam Rentang (diurutkan menurut net lot Broker teratasnya), dan Scanner. Selama sesi berjalan, daftar saham memakai hari bursa terakhir yang sudah lengkap, dan Sinyal Perkiraan hari ini tampil terpisah.
+_Avoid_: Beranda, dashboard, halaman IHSG
+
 **Scanner**:
-Daftar semua saham yang sedang memenuhi satu pola tertentu, misalnya Scanner Silent Akumulasi atau Scanner Lonjakan Volume Intraday. Bisa dinyalakan dan dimatikan pengguna.
+Daftar semua saham yang sedang memenuhi satu pola tertentu, misalnya Scanner Silent Akumulasi atau Scanner Lonjakan Volume Intraday. Setiap saham ditampilkan bersama tiga Broker dengan net beli terbesar dan avg belinya. Bisa dinyalakan dan dimatikan pengguna.
 _Avoid_: Screener, filter
+
+**Watchlist**:
+Daftar saham yang dipantau satu pengguna, beserta sinyal terbaru dan Broker yang menampungnya.
+_Avoid_: Daftar pantau, favorit, portofolio
 
 **Order Block**:
 Zona harga dari candle berlawanan terakhir sebelum harga menembus swing high atau swing low. Digambar otomatis di grafik dan bisa dinyalakan atau dimatikan pengguna.
@@ -93,7 +105,7 @@ Pesan setelah pasar tutup dengan format "[saham] diakumulasi/didistribusi [Broke
 _Avoid_: Alert bandar
 
 **Crossing**:
-Dua atau lebih Broker saling beli dan saling jual saham yang sama untuk membentuk volume, padahal barang hanya bertukar tempat tanpa pemilik baru. Ditandai bila dalam satu hari A jual ke B dan B jual ke A dengan selisih lot paling besar 10%, dan totalnya minimal 5% volume harian saham itu.
+Dua Broker saling beli dan saling jual saham yang sama untuk membentuk volume, padahal barang hanya bertukar tempat tanpa pemilik baru. Ditandai bila dalam satu hari A jual ke B dan B jual ke A dengan selisih lot paling besar 10%, dan totalnya minimal 5% volume harian saham itu.
 _Avoid_: Cross, wash trade, goreng volume
 
 **Crossing Ketat**:

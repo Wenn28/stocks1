@@ -10,7 +10,7 @@ const stored = (key, def) => {
   try { return { ...def, ...JSON.parse(localStorage.getItem(key)) }; } catch { return def; }
 };
 
-const state = { data: null, stock: null, rentang: 20, tf: 1440, groups: [], candles: [], blocks: [], showPasif: false };
+const state = { data: null, stock: null, rentang: 20, tf: 1440, groups: {}, candles: [], blocks: [], showPasif: false };
 const ob = stored('ob', { on: true, swing: 5, max: 3, mitigation: 'wick', bull: '#1f9d55', bear: '#d64541',
   avg: true, volume: true, age: true, broker: true });
 const scan = stored('scan', { silent: true, spike: true, time: '11:00:00' });
@@ -60,7 +60,7 @@ function analyse(code) {
     const today = dayStats(days[dates.at(-1)] ?? []);
     const prev = dayStats(days[dates.at(-2)] ?? []).last;
     return {
-      patterns: detectBrokerPatterns(days, dates, state.rentang, state.groups),
+      patterns: detectBrokerPatterns(days, dates, state.rentang, state.groups[code] ?? []),
       crossing: win.flatMap((d) => crossingOf(code, d).map((c) => ({ ...c, date: d }))),
       spike: volumeSpike(days, dates, dates.at(-1)),
       last: today.last,
@@ -127,9 +127,10 @@ function renderDetail() {
     ? a.crossing.map((c) => `<li>${c.date}: <strong>${esc(c.a)}</strong> jual ${fmt.format(c.aToB)} lot ke <strong>${esc(c.b)}</strong>, ${esc(c.b)} jual ${fmt.format(c.bToA)} lot ke ${esc(c.a)} (${Math.round(c.share * 100)}% volume hari itu)${c.strict ? ' <span class="tag">Crossing Ketat, dalam 15 menit</span>' : ''}</li>`).join('')
     : `<li class="muted">Tidak ada Crossing dalam ${state.rentang} hari terakhir.</li>`;
 
-  $('#dugaan').textContent = state.groups.length
-    ? `Perkiraan, belum terverifikasi: ${state.groups.map((g) => g.name).join(', ')}. Pasangan ini pernah tertangkap Crossing bersama dalam 60 hari terakhir, jadi mungkin bertindak untuk pihak yang sama.`
-    : 'Belum ada pasangan Broker yang tertangkap Crossing bersama dalam 60 hari terakhir.';
+  const groups = state.groups[code] ?? [];
+  $('#dugaan').textContent = groups.length
+    ? `Perkiraan, belum terverifikasi: ${groups.map((g) => g.name).join(', ')}. Pasangan ini pernah tertangkap Crossing bersama di saham ini dalam 60 hari terakhir, jadi mungkin bertindak untuk pihak yang sama.`
+    : 'Belum ada pasangan Broker yang tertangkap Crossing bersama di saham ini dalam 60 hari terakhir.';
 }
 
 // Broker yang hanya Pasif disembunyikan secara bawaan: di Rentang panjang jumlahnya puluhan dan menenggelamkan sinyal.

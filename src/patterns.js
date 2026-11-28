@@ -55,8 +55,10 @@ export function detectBrokerPatterns(days, dates, rentang, groups = []) {
     return d;
   });
   const downDays = down.filter(Boolean).length;
+  // Penampung hanya dinilai dari belian di hari turun.
   const belowVwap = win.map((d, i) => {
     const m = {};
+    if (!down[i]) return m;
     for (const r of rowsOf(d)) if (r[P] < stats[i].vwap) m[r[B]] = (m[r[B]] ?? 0) + r[L];
     return m;
   });
@@ -66,7 +68,7 @@ export function detectBrokerPatterns(days, dates, rentang, groups = []) {
 
   const out = [];
   for (const e of entities) {
-    let buyLot = 0, buyVal = 0, sellLot = 0, sellVal = 0, below = 0;
+    let buyLot = 0, buyVal = 0, sellLot = 0, sellVal = 0, below = 0, downBuy = 0;
     const net = sums.map((s, i) => {
       let n = 0;
       for (const m of e.members) {
@@ -74,6 +76,7 @@ export function detectBrokerPatterns(days, dates, rentang, groups = []) {
         if (!x) continue;
         buyLot += x.buyLot; buyVal += x.buyVal; sellLot += x.sellLot; sellVal += x.sellVal;
         below += belowVwap[i][m] ?? 0;
+        if (down[i]) downBuy += x.buyLot;
         n += x.buyLot - x.sellLot;
       }
       return n;
@@ -83,9 +86,10 @@ export function detectBrokerPatterns(days, dates, rentang, groups = []) {
     const avgBuy = buyLot ? buyVal / buyLot : null;
     const avgSell = sellLot ? sellVal / sellLot : null;
 
+    // Avg dibanding harga terakhir hanya keterangan, bukan syarat Akumulasi/Distribusi.
     let side = null;
-    if (netLot > 0 && avgBuy < last) side = 'akumulasi';
-    else if (netLot < 0 && avgSell > last) side = 'distribusi';
+    if (netLot > 0) side = 'akumulasi';
+    else if (netLot < 0) side = 'distribusi';
 
     const pasif = Math.abs(netLot) / win.length < RULES.pasifShare * avgVol;
     const sign = side === 'distribusi' ? -1 : 1;
@@ -95,7 +99,7 @@ export function detectBrokerPatterns(days, dates, rentang, groups = []) {
     // shortcut: Penampung juga mensyaratkan bukan Pasif agar Broker kecil tidak ikut tertandai, sama seperti Masif.
     const penampung = !pasif && downDays > 0
       && net.filter((n, i) => down[i] && n > 0).length >= downDays / 2
-      && below > buyLot / 2;
+      && below > downBuy / 2;
     if (!side && !penampung) continue;
 
     out.push({ broker: e.name, kind: e.kind, members: e.members, side, netLot, avgBuy, avgSell,
@@ -176,16 +180,18 @@ export function detectCrossing(rows) {
   return [...found.values()];
 }
 
-// Kelompok Dugaan: setiap pasangan Broker yang tertangkap Crossing bersama di saham mana pun.
+// Kelompok Dugaan per saham: { kode: [pasangan Broker yang tertangkap Crossing bersama di saham itu] }.
 // crossingOf(kode, tanggal) boleh diganti versi ber-cache agar Crossing tiap hari dihitung sekali saja.
 export function suspectedGroups(stocks, dates, crossingOf = (code, d) => detectCrossing(stocks[code][d] ?? [])) {
-  const seen = new Map();
+  const out = {};
   for (const code of Object.keys(stocks)) {
+    const seen = new Map();
     for (const d of dates.slice(-RULES.dugaanDays)) {
       for (const c of crossingOf(code, d)) {
         seen.set(c.a + '+' + c.b, { name: `${c.a} + ${c.b}`, members: [c.a, c.b], kind: 'dugaan' });
       }
     }
+    out[code] = [...seen.values()];
   }
-  return [...seen.values()];
+  return out;
 }

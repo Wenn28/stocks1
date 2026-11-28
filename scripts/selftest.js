@@ -28,7 +28,21 @@ assert.ok(cr && !cr.strict, 'Q3/Q4 Crossing harian, bukan Ketat');
 assert.ok(detectCrossing(stocks.ZZCR[dates.at(-4)]).find((c) => c.a === 'Q6' && c.b === 'Q7')?.strict, 'Q6/Q7 harus Crossing Ketat');
 assert.equal(dates.slice(-20).flatMap((d) => detectCrossing(stocks.ZZNO[d])).length, 0, 'ZZNO tanpa Crossing 20 hari');
 
-assert.deepEqual(suspectedGroups(stocks, dates).map((g) => g.name).sort(), ['Q3 + Q4', 'Q6 + Q7'], 'hanya pasangan Crossing yang jadi Kelompok Dugaan');
+const dug = suspectedGroups(stocks, dates);
+assert.deepEqual(dug.ZZCR.map((g) => g.name).sort(), ['Q3 + Q4', 'Q6 + Q7'], 'hanya pasangan Crossing yang jadi Kelompok Dugaan');
+assert.ok(Object.entries(dug).every(([code, g]) => code === 'ZZCR' || g.length === 0), 'Kelompok Dugaan hanya di saham tempat Crossing terjadi');
+
+// Hari buatan: d1 dan d3 turun, d2 naik. Y beli murah di hari naik, tapi di atas VWAP di hari turun.
+// XA net beli dengan avg di atas harga terakhir.
+const fx = {
+  d0: [['09:00:00', 100, 10, 'XA', 'XB']],
+  d1: [['09:00:00', 98, 100, 'XA', 'XB'], ['09:01:00', 100, 50, 'Y', 'XB'], ['15:49:00', 99, 10, 'XA', 'XB']],
+  d2: [['09:00:00', 99, 500, 'Y', 'XB'], ['09:01:00', 102, 500, 'XA', 'XB'], ['15:49:00', 101, 10, 'XA', 'XB']],
+  d3: [['09:00:00', 99, 100, 'XA', 'XB'], ['09:01:00', 101, 50, 'Y', 'XB'], ['15:49:00', 100, 10, 'XA', 'XB']],
+};
+const fxp = detectBrokerPatterns(fx, ['d0', 'd1', 'd2', 'd3'], 3);
+assert.equal(fxp.find((p) => p.broker === 'Y')?.penampung, false, 'Penampung hanya dinilai dari belian di hari turun');
+assert.equal(fxp.find((p) => p.broker === 'XA')?.side, 'akumulasi', 'avg di atas harga terakhir tetap Akumulasi');
 
 const grp = find('ZZAK', 'Q1 + QA', [{ name: 'Q1 + QA', members: ['Q1', 'QA'], kind: 'pribadi' }]);
 assert.ok(grp?.masif && grp.kind === 'pribadi', 'Kelompok dihitung sebagai satu baris');
