@@ -26,6 +26,10 @@ Pengecualian yang diputuskan pemilik: lingkaran inisial saham memakai satu warna
 | Aksen, tombol utama | `#2563EB` dengan teks putih (5,17:1), garis aktif `#3B82F6` |
 | Naik / Akumulasi | `#10B981`, teks `#34D399`, latar pil `#0D2E24` |
 | Turun / Distribusi | `#F43F5E`, teks `#FB7185`, latar pil `#33131E` |
+| Bintang Pantau aktif | `#F59E0B` di latar `#33240C` (hanya untuk bintang) |
+| Latar kotak grafik, header tabel | `#0E131D` |
+
+Sumber tampilan sekarang: prototype HTML/CSS `ui1` milik pemilik produk (gaya SahamPulse): sidebar dengan ikon garis, kotak cari, kartu 14 px, tabel scanner dengan header berlatar, pill Timeframe biru penuh, dan nav bawah di layar 1024 px ke bawah. Huruf Inter dimuat dari Google Fonts. Data dan fitur palsu di prototype itu (LQ45, USD/IDR, Asing Net, Market Cap, kartu pengguna, Live Sim, Portofolio, Market Breadth) tidak dipakai.
 
 Bagian "Warna" di bawah ini adalah arah lama (netral + putih) dan sudah diganti oleh tabel di atas.
 
@@ -57,7 +61,7 @@ Kerapatan sedang: baris tabel rapat supaya banyak Broker terlihat, tapi ada ruan
 
 Hijau dan merah hanya untuk arah (harga, net lot, Akumulasi/Distribusi), tidak pernah untuk dekorasi. Arah juga selalu ditulis atau diberi tanda +/-, tidak hanya lewat warna.
 
-Tema terang dibuat setelah tema gelap disetujui. Tombol ganti tema tetap ada, dan kedua tema harus lolos WCAG AA.
+Untuk sekarang aplikasi hanya bertema gelap dan tombol ganti tema dilepas, karena tema terang belum didesain. Saat tema terang dibuat, tombolnya kembali dan kedua tema harus lolos WCAG AA.
 
 ## Huruf
 
@@ -77,22 +81,26 @@ Desktop 1440 px dan mobile 390 px dirancang bersamaan.
 
 ### Header (semua layar)
 
-Desktop: sidebar 220 px berisi "Secret" dengan `[LOGO]`, menu Ringkasan Pasar, Scanner, dan Watchlist (yang aktif bergaris biru di kiri), dan kartu DATA CONTOH di bawah. Header atas berisi kotak cari kode saham, ticker IHSG, label DATA CONTOH, dan tombol tema. Mobile: tab bar bawah dengan tiga menu yang sama. Klik saham di daftar mana pun membuka halaman saham.
+Desktop: sidebar 220 px berisi "Secret" dengan `[LOGO]`, menu Ringkasan Pasar, Scanner, dan Watchlist (yang aktif bergaris biru di kiri), dan kartu DATA CONTOH di bawah. Header atas berisi kotak cari kode saham, ticker IHSG, dan label DATA CONTOH. Mobile: tab bar bawah dengan tiga menu yang sama, Watchlist dengan jumlah sahamnya. Klik baris saham di daftar mana pun membuka halaman saham.
+
+### Baris saham (dipakai di Ringkasan, Scanner, Watchlist)
+
+Tata letak mengikuti tabel scanner di SahamPulse. Desktop: kolom Emiten, Harga, Perubahan, angka pola (batang net lot Broker atau rasio volume), isi, dan tombol bintang Pantau di ujung. Seluruh baris adalah link ke halaman saham; bintang tetap tombol sendiri. Mobile: setiap baris jadi kartu, kode dan harga di atas, angka pola dan isi di bawah garis.
 
 ### Scanner
 
-Satu halaman dengan pilihan pola: Silent Akumulasi, Akumulasi Masif, Akumulasi Pasif, Distribusi Masif, Distribusi Pasif, Penampung, dan Lonjakan Volume Intraday, masing-masing dengan jumlah sahamnya. Silent hanya untuk Masif. Setiap saham menampilkan harga, kalimat sinyal, dan "Ditampung oleh": tiga Broker dengan net beli terbesar, net lot, dan avg beli.
+Deretan tile pola: Semua pola, Silent Akumulasi, Akumulasi Masif, Akumulasi Pasif, Distribusi Masif, Distribusi Pasif, Penampung, dan Lonjakan Volume Intraday, masing-masing dengan jumlah sahamnya (geser ke samping di mobile). Bawaan "Semua pola": satu kartu per pola, dua kartu per baris di desktop. Silent hanya untuk Masif. Isi setiap baris adalah "Ditampung oleh": tiga Broker dengan net beli terbesar, net lot, dan avg beli, sebagai chip.
 
 ### Watchlist
 
-Tombol "+ Pantau" di halaman saham. Halaman Watchlist berisi saham pantauan dengan harga, sinyal terbaru, "Ditampung oleh", dan tombol Hapus. Disimpan di browser sampai akun tersedia. Keadaan kosong menjelaskan cara menambah saham.
+Tombol "+ Pantau" di halaman saham dan bintang di setiap baris saham. Halaman Watchlist berisi saham pantauan dengan harga, tren 20 hari, sinyal terbaru, "Ditampung oleh", dan tombol Hapus. Disimpan di browser sampai akun tersedia. Keadaan kosong menjelaskan cara menambah saham.
 
 ### Ringkasan Pasar (layar pertama)
 
-1. Grafik candle IHSG dengan pilihan Timeframe yang sama seperti halaman saham.
-2. 10 saham paling diakumulasi dan 10 paling didistribusi, dalam format kalimat sinyal ("ZZAK diakumulasi [Q1] dengan 12.000 lot di avg 995"), ditambah harga dan perubahan harian. Pilihan Rentang 5, 20, 60 hari, bawaan 20, dan ikut terbawa ke halaman saham.
-3. Selama sesi berjalan: daftar memakai hari bursa terakhir yang lengkap, dengan tanggal jelas. Sinyal Perkiraan hari ini tampil terpisah, tanpa nama Broker, berlabel perkiraan.
-4. Scanner.
+1. Grafik IHSG dengan Open/High/Low di kepala kartu dan pilihan Timeframe yang sama seperti halaman saham.
+2. Kartu "Pola Broker teratas" di bawah grafik, dengan tab: Paling diakumulasi, Paling didistribusi (masing-masing maksimal 10 saham, kalimat sinyal "ZZAK diakumulasi [Q1] dengan 12.000 lot di avg 995"), Silent Akumulasi, Penampung, dan Lonjakan Volume. Pilihan Rentang 5, 20, 60 hari, bawaan 20, dan ikut terbawa ke halaman saham. Tombol ke Scanner lengkap.
+3. Kolom kanan: Watchlist Saya dan Sinyal Perkiraan.
+4. Selama sesi berjalan: daftar memakai hari bursa terakhir yang lengkap, dengan tanggal jelas. Sinyal Perkiraan hari ini tampil terpisah, tanpa nama Broker, berlabel perkiraan.
 
 ### Halaman saham
 

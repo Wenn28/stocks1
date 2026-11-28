@@ -1,11 +1,13 @@
 <!doctype html>
-<html lang="id">
+<html lang="id" data-theme="dark">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Stocks1: Pola Broker IDX (prototype, data contoh)</title>
-  <!-- tema dipasang sebelum gambar pertama, agar mode gelap tidak berkedip terang -->
-  <script>document.documentElement.dataset.theme = localStorage.getItem('theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');</script>
+  <title>Secret: Pola Broker IDX (prototype, data contoh)</title>
+  <link rel="icon" href="data:,"><!-- logo belum ada; mencegah permintaan favicon.ico yang 404 -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
   <link rel="stylesheet" href="src/style.css">
   <link rel="modulepreload" href="src/patterns.js">
   <link rel="modulepreload" href="src/candles.js">
@@ -14,143 +16,246 @@
   <script type="module" src="src/app.js"></script>
 </head>
 <body>
-  <header class="top">
-    <span class="brand">Stocks1</span>
-    <p class="sample">PROTOTYPE, DATA CONTOH: kode saham dan Broker fiktif</p>
-    <button type="button" id="theme" aria-pressed="false">Mode gelap</button>
-  </header>
-
-  <main>
-    <h1 class="visually-hidden">Pola Broker per saham</h1>
-
-    <p id="loading" class="state">Membuat data contoh&hellip;</p>
-
-    <div id="error" class="state" hidden>
-      <p>Data contoh atau library grafik gagal dimuat. Periksa koneksi, lalu coba lagi.</p>
-      <button type="button" id="retry">Muat ulang data</button>
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" href="#/ringkasan">
+      <span class="brand-icon" aria-hidden="true">[LOGO]</span>
+      <span><span class="brand-title">Secret</span><span class="brand-sub">POLA BROKER IDX</span></span>
+    </a>
+    <p class="nav-label">Menu utama</p>
+    <nav aria-label="Menu utama">
+      <ul class="nav-list">
+        <li><a class="nav-item" href="#/ringkasan" data-view="ringkasan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+          <span>Ringkasan Pasar</span></a></li>
+        <li><a class="nav-item" href="#/scanner" data-view="scanner">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+          <span>Scanner Saham</span></a></li>
+        <li><a class="nav-item" href="#/watchlist" data-view="watchlist">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="14" x2="13" y2="14"/></svg>
+          <span>Watchlist</span><span class="nav-badge" data-watch-count></span></a></li>
+      </ul>
+    </nav>
+    <div class="status-card">
+      <span class="badge badge-outline">DATA CONTOH</span>
+      <p>Semua saham, Broker, dan IHSG di sini fiktif dari generator data contoh. Bukan data pasar.</p>
     </div>
+  </aside>
 
-    <div id="ready" class="layout" hidden>
-      <div class="side">
-        <nav aria-label="Daftar saham">
-          <ul id="stocks" class="stocks"></ul>
-        </nav>
+  <div class="main-column">
+    <header class="topbar">
+      <a class="brand brand-mobile" href="#/ringkasan"><span class="brand-icon" aria-hidden="true">[LOGO]</span><span class="brand-title">Secret</span></a>
+      <form class="search-wrap" id="search" role="search">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><line x1="16.6" y1="16.6" x2="21" y2="21"/></svg>
+          <label class="visually-hidden" for="search-input">Cari kode saham</label>
+          <input id="search-input" list="codes" autocomplete="off" placeholder="Cari kode saham, mis. ZZAK" aria-describedby="search-msg">
+          <button type="submit" class="kbd-chip">Buka</button>
+        </div>
+        <datalist id="codes"></datalist>
+        <p id="search-msg" class="search-msg" role="status"></p>
+      </form>
+      <p class="ticker-pill" id="ticker"></p>
+      <span class="badge badge-outline topbar-end">DATA CONTOH</span>
+    </header>
 
-        <section class="scanner" aria-labelledby="scanner-title">
-          <h2 id="scanner-title">Scanner</h2>
-          <p class="muted small">Dihitung dari hari bursa terakhir data contoh, bukan real time.</p>
-          <label class="check"><input type="checkbox" id="scan-silent-on"> Silent Akumulasi/Distribusi</label>
-          <ul id="scan-silent" class="scan"></ul>
-          <label class="check"><input type="checkbox" id="scan-spike-on"> Lonjakan Volume Intraday</label>
-          <label class="field" id="scan-time-field">Sampai jam
-            <select id="scan-time">
-              <option value="09:30:00">09:30</option>
-              <option value="10:00:00">10:00</option>
-              <option value="11:00:00">11:00</option>
-              <option value="14:00:00">14:00</option>
-              <option value="15:50:00">15:50</option>
-            </select>
-          </label>
-          <ul id="scan-spike" class="scan"></ul>
-        </section>
+    <main class="workspace">
+      <h1 id="view-title" class="view-title">Ringkasan Pasar</h1>
+
+      <p id="loading" class="state">Membuat data contoh&hellip;</p>
+      <div id="error" class="state card" hidden>
+        <p>Data contoh atau library grafik gagal dimuat. Periksa koneksi, lalu coba lagi.</p>
+        <button type="button" id="retry" class="btn btn-primary">Muat ulang data</button>
       </div>
 
-      <section id="detail" class="detail">
-        <div class="head">
-          <h2 id="code"></h2>
-          <p id="stats" class="stats"></p>
-        </div>
-
-        <ul id="signals" class="signals" aria-label="Sinyal utama"></ul>
-
-        <div class="toolbar">
-          <fieldset class="seg">
-            <legend>Timeframe</legend>
-            <div class="opts">
-              <label><input type="radio" name="tf" value="5">5m</label>
-              <label><input type="radio" name="tf" value="10">10m</label>
-              <label><input type="radio" name="tf" value="15">15m</label>
-              <label><input type="radio" name="tf" value="30">30m</label>
-              <label><input type="radio" name="tf" value="240">4j</label>
-              <label><input type="radio" name="tf" value="1440" checked>1D</label>
+      <!-- Ringkasan Pasar -->
+      <div id="v-ringkasan" class="view dashboard-grid" hidden>
+        <div class="left-stack">
+          <section class="card" aria-labelledby="ihsg-title">
+            <div class="card-header">
+              <div class="ihsg-title-row">
+                <span class="badge badge-blue">IHSG</span>
+                <h2 id="ihsg-title" class="ihsg-title">Indeks Harga Saham Gabungan</h2>
+              </div>
+              <span class="badge badge-outline">DATA CONTOH</span>
             </div>
-          </fieldset>
-          <button type="button" id="ob-toggle" aria-pressed="true">Sembunyikan Order Block</button>
+            <div class="ihsg-price-strip" id="ihsg-value"></div>
+            <div class="chart-controls">
+              <fieldset class="seg"><legend class="visually-hidden">Timeframe IHSG</legend>
+                <div class="opts" data-tf-group="ihsg"></div>
+              </fieldset>
+              <fieldset class="seg"><legend class="visually-hidden">Jenis grafik IHSG</legend>
+                <div class="opts">
+                  <label><input type="radio" name="ihsg-kind" value="area" checked>Area</label>
+                  <label><input type="radio" name="ihsg-kind" value="candle">Candle</label>
+                </div>
+              </fieldset>
+            </div>
+            <div class="chart-wrap small-chart"><div id="ihsg-chart" role="img" aria-label="Grafik IHSG data contoh"></div></div>
+          </section>
+
+          <section class="card" aria-labelledby="top-title">
+            <div class="card-header">
+              <div><h2 id="top-title" class="card-title">Pola Broker teratas</h2><p class="sub" id="top-desc"></p></div>
+              <div class="header-tools">
+                <fieldset class="seg"><legend>Rentang</legend><div class="opts" data-rentang-group="r1"></div></fieldset>
+                <a class="btn btn-secondary" href="#/scanner">Buka Scanner</a>
+              </div>
+            </div>
+            <fieldset class="seg scanner-tabs"><legend class="visually-hidden">Daftar</legend><div class="opts tabs scroll-x" data-top-group></div></fieldset>
+            <div class="rows-head" aria-hidden="true"><span>Emiten</span><span class="num">Harga</span><span class="num">Perubahan</span><span id="top-metric">Net lot</span><span>Sinyal</span><span class="center">Watch</span></div>
+            <ul class="rows stock" id="top-list"></ul>
+          </section>
         </div>
 
-        <p id="legend" class="legend"></p>
-        <div class="chart-wrap">
-          <div id="chart" role="img" aria-label="Grafik candle dan volume saham terpilih"></div>
-          <div id="ob-layer" aria-hidden="true"></div>
+        <div class="left-stack">
+          <section class="card watchlist-card" aria-labelledby="wl-mini-title">
+            <div class="card-header"><div><h2 id="wl-mini-title" class="card-title">Watchlist Saya</h2><p class="sub">Disimpan di browser ini</p></div><a class="btn btn-primary" href="#/watchlist">Kelola</a></div>
+            <ul class="rows wl-list" id="wl-mini"></ul>
+          </section>
+          <section class="card" aria-labelledby="perk-title">
+            <div class="card-header"><div><h2 id="perk-title" class="card-title">Sinyal Perkiraan</h2><p class="sub">Saat sesi berjalan, dari Tekanan Beli/Jual</p></div><span class="badge badge-muted">perkiraan</span></div>
+            <p class="subbox muted">Belum ada sinyal hari ini. Data contoh dibuat setelah pasar tutup. Saat sesi berjalan, perkiraan Akumulasi/Distribusi muncul di sini tanpa nama Broker.</p>
+          </section>
         </div>
+      </div>
 
-        <details class="ob-settings">
-          <summary>Pengaturan Order Block</summary>
-          <form id="ob-form">
-            <label class="field">Panjang swing <input type="number" name="swing" min="2" max="20" required></label>
-            <label class="field">Blok per arah <input type="number" name="max" min="1" max="10" required></label>
-            <label class="field">Mitigasi
-              <select name="mitigation"><option value="wick">Wick</option><option value="close">Close</option></select>
+      <!-- Scanner -->
+      <div id="v-scanner" class="view" hidden>
+        <section class="criteria-bar" aria-label="Kriteria">
+          <fieldset class="tiles"><legend class="criteria-label">Pola aktif:</legend><div id="pola-tiles" class="tiles-grid"></div></fieldset>
+          <div class="criteria-tools">
+            <fieldset class="seg"><legend>Rentang</legend><div class="opts" data-rentang-group="r2"></div></fieldset>
+            <label class="field" id="scan-time-field" hidden>Sampai jam
+              <select id="scan-time">
+                <option value="09:30:00">09:30</option>
+                <option value="10:00:00">10:00</option>
+                <option value="11:00:00">11:00</option>
+                <option value="14:00:00">14:00</option>
+                <option value="15:50:00">15:50</option>
+              </select>
             </label>
-            <label class="field">Warna OB beli <input type="color" name="bull"></label>
-            <label class="field">Warna OB jual <input type="color" name="bear"></label>
-            <fieldset class="fields">
-              <legend>Isi data</legend>
-              <label class="check"><input type="checkbox" name="avg"> Avg harga</label>
-              <label class="check"><input type="checkbox" name="volume"> Volume</label>
-              <label class="check"><input type="checkbox" name="age"> Umur hari</label>
-              <label class="check"><input type="checkbox" name="broker"> Broker teratas</label>
-            </fieldset>
-          </form>
-        </details>
+          </div>
+        </section>
+        <div id="scan-grid" class="studio-grid"></div>
+      </div>
 
-        <div class="section-head">
-          <h3>Akumulasi dan Distribusi</h3>
-          <fieldset class="seg">
-            <legend>Rentang</legend>
-            <div class="opts">
-              <label><input type="radio" name="rentang" value="5">5 hari</label>
-              <label><input type="radio" name="rentang" value="20" checked>20 hari</label>
-              <label><input type="radio" name="rentang" value="60">60 hari</label>
+      <!-- Halaman saham -->
+      <div id="v-saham" class="view dashboard-grid" hidden>
+        <div class="left-stack">
+          <section class="card">
+            <div class="stock-head">
+              <span class="avatar big" id="s-avatar" aria-hidden="true"></span>
+              <div><h2 id="code" class="code-title"></h2><p class="sub" id="s-date"></p></div>
+              <div class="price-stack push" id="s-price"></div>
+              <button type="button" class="btn btn-primary" id="watch-toggle" aria-pressed="false">+ Pantau</button>
             </div>
-          </fieldset>
-          <p id="range-meta" class="muted small"></p>
-        </div>
-        <p id="empty" class="muted" hidden></p>
-        <div class="table-wrap">
-          <table id="brokers">
-            <thead>
-              <tr>
-                <th scope="col">Broker</th>
-                <th scope="col">Pola</th>
-                <th scope="col" class="num">Net lot</th>
-                <th scope="col" class="num">Avg beli</th>
-                <th scope="col" class="num">Avg jual</th>
-                <th scope="col" class="num">Hari searah</th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-        <button type="button" id="pasif-toggle" class="link-btn" aria-controls="brokers" aria-expanded="false" hidden></button>
+            <ul id="signals" class="signals" aria-label="Sinyal utama"></ul>
+          </section>
 
-        <div class="pair">
-          <div>
-            <h3>Crossing</h3>
-            <ul id="crossing" class="crossing"></ul>
-          </div>
-          <div>
-            <h3>Kelompok Dugaan</h3>
-            <p id="dugaan" class="dugaan"></p>
-          </div>
-        </div>
-      </section>
-    </div>
-  </main>
+          <section class="card" aria-label="Grafik">
+            <div class="chart-controls">
+              <fieldset class="seg"><legend class="visually-hidden">Timeframe</legend><div class="opts" data-tf-group="saham"></div></fieldset>
+              <button type="button" class="btn btn-secondary" id="ob-toggle" aria-pressed="true">Sembunyikan Order Block</button>
+            </div>
+            <p id="legend" class="legend"></p>
+            <div class="chart-wrap">
+              <div id="chart" role="img" aria-label="Grafik candle dan volume saham terpilih"></div>
+              <div id="ob-layer" aria-hidden="true"></div>
+            </div>
+            <p id="ob-empty" class="sub" hidden>Tidak ada Order Block yang belum termitigasi di Timeframe ini.</p>
+            <details class="ob-settings">
+              <summary>Pengaturan Order Block</summary>
+              <form id="ob-form">
+                <label class="field">Panjang swing <input type="number" name="swing" min="2" max="20" required></label>
+                <label class="field">Blok per arah <input type="number" name="max" min="1" max="10" required></label>
+                <label class="field">Mitigasi
+                  <select name="mitigation"><option value="wick">Wick</option><option value="close">Close</option></select>
+                </label>
+                <label class="field">Warna OB beli <input type="color" name="bull"></label>
+                <label class="field">Warna OB jual <input type="color" name="bear"></label>
+                <fieldset class="fields">
+                  <legend>Isi data</legend>
+                  <label class="check"><input type="checkbox" name="avg"> Avg harga</label>
+                  <label class="check"><input type="checkbox" name="volume"> Volume</label>
+                  <label class="check"><input type="checkbox" name="age"> Umur hari</label>
+                  <label class="check"><input type="checkbox" name="broker"> Broker teratas</label>
+                </fieldset>
+              </form>
+            </details>
+          </section>
 
-  <footer class="foot muted">
-    Semua angka di halaman ini berasal dari generator data contoh, bukan dari pasar. Bukan rekomendasi jual atau beli.
-    Grafik: <a href="https://www.tradingview.com/" rel="noopener">TradingView Lightweight Charts</a>.
-  </footer>
+          <section class="card" aria-labelledby="table-title">
+            <div class="card-header">
+              <div><h2 id="table-title" class="card-title">Akumulasi dan Distribusi</h2><p class="sub" id="range-meta"></p></div>
+              <fieldset class="seg"><legend class="visually-hidden">Rentang</legend><div class="opts" data-rentang-group="r3"></div></fieldset>
+            </div>
+            <p id="empty" class="muted" hidden></p>
+            <div class="table-wrap">
+              <table id="brokers" class="scanner-table">
+                <thead>
+                  <tr>
+                    <th scope="col">Broker</th>
+                    <th scope="col">Pola</th>
+                    <th scope="col" class="num">Net lot</th>
+                    <th scope="col" class="num hide-m">Avg beli</th>
+                    <th scope="col" class="num hide-m">Avg jual</th>
+                    <th scope="col" class="num hide-m">Hari searah</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+              </table>
+            </div>
+            <button type="button" id="pasif-toggle" class="link-btn" aria-controls="brokers" aria-expanded="false" hidden></button>
+          </section>
+        </div>
+
+        <div class="left-stack">
+          <section class="card" aria-labelledby="tamp-title">
+            <div class="card-header"><div><h2 id="tamp-title" class="card-title">Ditampung oleh</h2><p class="sub">3 Broker net beli terbesar</p></div></div>
+            <ul class="tampung" id="s-tampung"></ul>
+          </section>
+          <section class="card" aria-labelledby="cross-title">
+            <div class="card-header"><div><h2 id="cross-title" class="card-title">Crossing</h2><p class="sub" data-range-text></p></div></div>
+            <ul id="crossing" class="plain"></ul>
+          </section>
+          <section class="card" aria-labelledby="dug-title">
+            <div class="card-header"><div><h2 id="dug-title" class="card-title">Kelompok Dugaan</h2><p class="sub">Perkiraan dari Crossing di saham ini</p></div><span class="badge badge-muted">perkiraan</span></div>
+            <p id="dugaan" class="subbox muted"></p>
+          </section>
+        </div>
+      </div>
+
+      <!-- Watchlist -->
+      <div id="v-watchlist" class="view" hidden>
+        <section class="card" aria-labelledby="wl-title">
+          <div class="card-header"><div><h2 id="wl-title" class="card-title big">Saham dipantau</h2><p class="sub" id="wl-sub"></p></div></div>
+          <div id="wl-empty" class="empty subbox" hidden>
+            <p><strong>Watchlist masih kosong.</strong></p>
+            <p class="muted">Cari kode saham di kotak cari, buka halamannya, lalu tekan "+ Pantau" atau bintang di daftar saham. Saham itu muncul di sini beserta sinyal terbaru dan siapa yang menampung.</p>
+          </div>
+          <ul class="rows stock compact" id="wl-list"></ul>
+        </section>
+      </div>
+    </main>
+
+    <footer class="foot">
+      Semua angka di halaman ini berasal dari generator data contoh, bukan dari pasar. Bukan rekomendasi jual atau beli.
+      Grafik: <a href="https://www.tradingview.com/" rel="noopener">TradingView Lightweight Charts</a>.
+    </footer>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Menu utama">
+    <a class="mnav-btn" href="#/ringkasan" data-view="ringkasan">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>
+      <span>Ringkasan</span></a>
+    <a class="mnav-btn" href="#/scanner" data-view="scanner">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg>
+      <span>Scanner</span></a>
+    <a class="mnav-btn" href="#/watchlist" data-view="watchlist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="3"/><line x1="7" y1="9" x2="17" y2="9"/><line x1="7" y1="14" x2="13" y2="14"/></svg>
+      <span>Watchlist</span><span class="nav-badge" data-watch-count></span></a>
+  </nav>
+</div>
 </body>
 </html>
